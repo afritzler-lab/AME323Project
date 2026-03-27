@@ -10,6 +10,12 @@ def oblique_delta(M,theta,gamma):
 
 gamma = 1.4
 M = 2
-theta = (3.14/4)
+theta = np.radians(50)
 
-print(oblique_delta(M,theta,gamma))
+print(np.degrees(oblique_delta(M,theta,gamma)))
+
+
+def M2(M):
+    return ((M**2+5)/(7*(M**2)-1))**(1/2)
+
+print(M2(3))
