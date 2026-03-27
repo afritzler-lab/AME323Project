@@ -10,6 +10,6 @@ def oblique_delta(M,theta,gamma):
 
 gamma = 1.4
 M = 2
-theta = 15
+theta = (3.14/4)
 
 print(oblique_delta(M,theta,gamma))
