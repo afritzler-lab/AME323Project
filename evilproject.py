@@ -31,7 +31,8 @@ def component(V,beta,delta):
     return Vr,Vt
 
 
-def taylor_maccoll(y1,y2,t):
+def taylor_maccoll(t,y):
+    y1,y2 = y
     a = (1.4-1)/2
     n = (y1*(y2**2))-(a*(1-(y1**2)-(y2**2))*(2*y1+y2*(1/np.tan(t))))
     d = a*(1-(y1**2)-(y2**2))-(y2**2)
@@ -39,15 +40,34 @@ def taylor_maccoll(y1,y2,t):
     return dy2dt
 
 def wall(theta,y): return y[1]
+wall.terminal = True
+wall.direction = 1
 
 
 Mach = 2
 
 beta = np.radians(65)
 
-delta = oblique_delta(Mach,beta)
-mu = mach_angle(Mach)
-Mach2 = M2(Mach,beta)
-Vinitial = component(find_V(Mach2),beta,delta)
+tol = 1e-5
+theta0 = None
+delta = None
+while theta0 == None or abs(theta0-delta) > tol:
 
-sol = solve_ivp(taylor_maccoll,t_span=[beta,0.01], y0=Vinitial, 
+    delta = oblique_delta(Mach,beta)
+    mu = mach_angle(Mach)
+    Mach2 = M2(Mach,beta)
+    Vinitial = component(find_V(Mach2),beta,delta)
+
+    sol = solve_ivp(taylor_maccoll,t_span=[beta,0.01], y0=Vinitial, events=wall, rtol=1e-8, atol=1e-10)
+
+    theta0 = sol.t[-1]
+    beta_hold = beta
+    if theta0 > delta:
+        beta = theta0
+    elif theta0 < delta:
+        beta = (beta + beta_last)/2
+    beta_last = beta_hold
+
+print(np.degrees(beta))
+print(np.degrees(delta))
+print(np.degrees(theta0))
