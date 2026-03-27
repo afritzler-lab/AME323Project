@@ -51,11 +51,13 @@ def compute_theta0(beta, Mach):
     Mach2 = M2(Mach, beta)
     Vinitial = component(find_V(Mach2), beta, delta)
     sol = solve_ivp(taylor_maccoll, t_span=[beta, 0.01], y0=Vinitial, 
-                    events=wall, rtol=1e-8, atol=1e-10)
-    return sol.t[-1]
+                    events=wall, rtol=1e-6, atol=1e-8)
+    if sol.status != 1 or len(sol.t_events[0]) == 0:
+        raise RuntimeError(f"no wall event for beta={np.degrees(beta):.6f}°, last t={sol.t[-1]:.6e}")
+    return sol.t_events[0][0]
 
 
-def find_beta_bisection(Mach, beta_min, beta_max, tol=1e-5, max_iter=100):
+def find_beta_bisection(Mach, beta_min, beta_max, tol=1e-4, max_iter=50):
     """
     Use bisection method to find beta where delta(beta) = theta0(beta)
     """
@@ -108,4 +110,4 @@ try:
     
 except ValueError as e:
     print(f"Error: {e}")
-    
+
