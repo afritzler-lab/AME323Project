@@ -1,5 +1,5 @@
 import numpy as np
-import scipy
+from scipy.integrate import solve_ivp
 import matplotlib.pyplot as plt
 
 
@@ -38,4 +38,16 @@ def taylor_maccoll(y1,y2,t):
     dy2dt = n/d
     return dy2dt
 
+def wall(theta,y): return y[1]
 
+
+Mach = 2
+
+beta = np.radians(65)
+
+delta = oblique_delta(Mach,beta)
+mu = mach_angle(Mach)
+Mach2 = M2(Mach,beta)
+Vinitial = component(find_V(Mach2),beta,delta)
+
+sol = solve_ivp(taylor_maccoll,t_span=[beta,0.01], y0=Vinitial, 
