@@ -57,45 +57,41 @@ def compute_theta0(beta, Mach):
     return sol.t_events[0][0]
 
 
-def find_beta_bisection(Mach, beta_min, beta_max, tol=1e-7, max_iter=40):
+def find_beta_bisection(Mach, beta_min, beta_max, tol=1e-3, max_iter=100):
     """
-    Use bisection method to find beta where delta(beta) = theta0(beta)
+    Find beta where theta0(beta) = delta(beta)
+    Adjust beta until theta0 = delta
     """
-    # Function to find root of: f(beta) = delta(beta) - theta0(beta) = 0
-    def f(beta):
-        delta = oblique_delta(Mach, beta)
-        theta0 = compute_theta0(beta, Mach)
-        return theta0 - delta
-    
-    # Check that we have opposite signs at bounds
-    f_min = f(beta_min)
-    f_max = f(beta_max)
-    
-    #if f_min * f_max > 0:
-        #raise ValueError("No root in the given interval - f(beta_min) and f(beta_max) must have opposite signs")
+    # Ensure beta always stays above Mach angle (delta must be > 0)
+    mach_min = mach_angle(Mach) + 0.001  # Small offset above Mach angle
+    beta_min = max(beta_min, mach_min)
     
     for iteration in range(max_iter):
         beta_mid = (beta_min + beta_max) / 2
-        f_mid = f(beta_mid)
+        delta_mid = oblique_delta(Mach, beta_mid)
+        theta0_mid = compute_theta0(beta_mid, Mach)
         
-        if abs(f_mid) < tol:
+        if abs(theta0_mid - delta_mid) < tol:
             return beta_mid
         
-        if f_min * f_mid < 0:
+        # Direct comparison: adjust beta based on theta0 vs delta
+        if theta0_mid > delta_mid:
+            # theta0 is too large, decrease beta
             beta_max = beta_mid
-            f_max = f_mid
-       # else:
-        #    beta_min = beta_mid
-         #   f_min = f_mid
+        else:
+            # theta0 is too small, increase beta
+            beta_min = beta_mid
+            # Enforce mach_min so beta never goes below it
+            beta_min = max(beta_min, mach_min)
     
     return (beta_min + beta_max) / 2  # Return best estimate
 
 
-Mach = 4
+Mach = 1.5
 
 # Initial guess for beta range (in radians)
 beta_min = mach_angle(Mach)  # Lower bound
-beta_max = np.radians(60)  # Upper bound
+beta_max = np.radians(70)  # Upper bound
 
 try:
     beta_solution = find_beta_bisection(Mach, beta_min, beta_max)
